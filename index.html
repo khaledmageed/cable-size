@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cable size by length</title>
+<meta name="description" content="Pick the cable for a 3-phase connection by run length, from the connection-size sheet.">
+<meta name="theme-color" content="#DEE1DE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#2B2F33" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cable size">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&display=swap" crossorigin="anonymous">
+<style>
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --sans: "Barlow", "IBM Plex Sans Hebrew", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --cond: "Barlow Semi Condensed", "Barlow", "IBM Plex Sans Hebrew", "IBM Plex Sans Arabic", "Arial Narrow", system-ui, sans-serif;
+
+    --wall: #DEE1DE;          /* switchboard enclosure grey */
+    --panel: #FFFFFF;         /* the printed sheet */
+    --ink: #1C1F21;
+    --muted: #586065;
+    --rule: #C6CBC8;
+    --rule-strong: #8E9592;
+    --yellow: #FFC20E;        /* tester yellow = selected */
+    --on-yellow: #1C1F21;
+    --marker: rgba(255, 194, 14, 0.42);
+    --focus: #1C1F21;
+    --slider: #1C1F21;
+    --cast: rgba(28, 33, 36, 0.28);
+    --pull: -28px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --wall: #2B2F33;
+      --panel: #353A3E;
+      --ink: #EEEFEB;
+      --muted: #A9AFB3;
+      --rule: #4B5257;
+      --rule-strong: #7B8388;
+      --marker: rgba(255, 194, 14, 0.24);
+      --focus: #FFC20E;
+      --slider: #FFC20E;
+      --cast: rgba(0, 0, 0, 0.55);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --wall: #2B2F33;
+    --panel: #353A3E;
+    --ink: #EEEFEB;
+    --muted: #A9AFB3;
+    --rule: #4B5257;
+    --rule-strong: #7B8388;
+    --marker: rgba(255, 194, 14, 0.24);
+    --focus: #FFC20E;
+    --slider: #FFC20E;
+    --cast: rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+  [dir="rtl"] { --pull: 28px; }
+
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body { margin: 0; background: var(--wall); color: var(--ink); font: 400 16px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+  html[lang="ar"] body { line-height: 1.6; }
+  [hidden] { display: none !important; }
+  button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .spec { font-family: var(--cond); font-weight: 600; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 104px; }
+  @media (min-width: 900px) { .wrap { padding: 36px 32px 112px; } }
+
+  /* Header */
+  .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+  h1 { margin: 0; font: 700 26px/1.1 var(--sans); letter-spacing: -0.01em; }
+  @media (min-width: 900px) { h1 { font-size: 34px; } }
+  html[lang="he"] h1, html[lang="ar"] h1 { letter-spacing: 0; }
+  .rule { flex-basis: 100%; margin: 4px 0 0; max-width: 60ch; color: var(--muted); }
+  .lang { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 4px; overflow: hidden; background: var(--panel); }
+  .lang button { border: 0; background: transparent; color: var(--muted); padding: 0 13px; min-height: 44px; font-weight: 600; font-size: 15px; }
+  .lang button + button { border-inline-start: 1px solid var(--rule-strong); }
+  .lang button[aria-pressed="true"] { background: var(--yellow); color: var(--on-yellow); }
+
+  /* Hero: the cable itself */
+  .hero { --d: 84px; margin: 22px 0 28px; }
+  @media (min-width: 900px) { .hero { --d: 112px; margin: 32px 0 36px; } }
+  .cable { display: flex; align-items: center; min-height: var(--d); filter: drop-shadow(0 12px 12px var(--cast)); }
+  .cut { position: relative; z-index: 1; flex: none; width: var(--d); height: var(--d); }
+  .cut svg { display: block; width: 100%; height: 100%; }
+  .jacket {
+    position: relative; flex: 1 1 auto; min-width: 0; height: var(--d);
+    display: flex; align-items: center; gap: 26px; overflow: hidden;
+    margin-inline-start: calc(var(--d) * -0.5);
+    padding-inline-start: calc(var(--d) * 0.5 + 16px);
+    padding-inline-end: 44px;
+    color: #F4F4EF;
+    background: linear-gradient(180deg, #4A5055 0%, #262A2D 20%, #121416 52%, #08090A 78%, #23272A 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 56px), transparent);
+  }
+  [dir="rtl"] .jacket {
+    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 56px), transparent);
+            mask-image: linear-gradient(to left, #000 calc(100% - 56px), transparent);
+  }
+  .spec-main { flex: none; white-space: nowrap; font: 600 40px/1 var(--cond); letter-spacing: 0.01em; }
+  @media (min-width: 900px) { .spec-main { font-size: 60px; } }
+  .print { flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; font: 500 13px/1 var(--cond); letter-spacing: 0.08em; opacity: 0.42; }
+  .print span { margin-inline-end: 3em; }
+  .jacket.pull .spec-main, .jacket.pull .print { animation: pull 0.28s cubic-bezier(0.2, 0.7, 0.2, 1); }
+  @keyframes pull { from { transform: translateX(var(--pull)); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .cable.is-beyond .jacket, .cable.is-none .jacket {
+    margin-inline-start: 0; padding-inline: 16px; border-radius: 6px;
+    -webkit-mask-image: none; mask-image: none;
+  }
+  .cable.is-beyond .jacket { background: repeating-linear-gradient(-45deg, #FFC20E 0 14px, #1C1F21 14px 28px); }
+  .cable.is-beyond .spec-main { background: #1C1F21; color: #FFC20E; padding: 10px 14px; border-radius: 3px; font-size: 30px; }
+  .cable.is-none { filter: none; }
+  .cable.is-none .jacket { background: transparent; border: 2px dashed var(--rule-strong); color: var(--muted); }
+  .cable.is-none .spec-main { font-size: 30px; }
+
+  .spec-extra { margin: 12px 0 0; padding-inline-start: calc(var(--d) * 0.5 + 16px); font: 600 22px/1.2 var(--cond); }
+  .explain { margin: 16px 0 0; max-width: 62ch; font-size: 17px; line-height: 1.45; }
+  .badge { display: inline-block; margin-inline-end: 6px; padding: 4px 8px; border-radius: 3px; background: var(--yellow); color: var(--on-yellow); font: 700 15px/1.1 var(--cond); vertical-align: 1px; white-space: nowrap; }
+  .switch { margin-top: 14px; min-height: 44px; padding: 0 18px; border: 1.5px solid var(--ink); border-radius: 3px; background: var(--panel); color: var(--ink); font-weight: 600; font-size: 16px; }
+
+  /* Layout */
+  .layout { display: grid; gap: 20px; }
+  @media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; } }
+  .sheet { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 20px; }
+  @media (min-width: 900px) { .sheet { padding: 24px; } }
+  .sheet h2 { margin: 0 0 14px; font: 600 18px/1.3 var(--sans); }
+
+  /* Controls */
+  .field + .field { margin-top: 26px; }
+  .flabel { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .lbl { font: 600 16px/1.3 var(--sans); }
+  .hint { font-size: 14px; color: var(--muted); }
+
+  .chips { display: grid; gap: 14px; }
+  .fam { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 560px) { .fam { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+  .chip { height: 46px; padding: 0; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--panel); color: var(--ink); font: 600 17px/1 var(--cond); font-variant-numeric: tabular-nums; }
+  .chip.empty { border-style: dashed; background: transparent; color: var(--muted); }
+  .chip[aria-pressed="true"] { border: 1.5px solid var(--on-yellow); background: var(--yellow); color: var(--on-yellow); }
+  @media (hover: hover) { .chip:hover { border-color: var(--ink); } }
+
+  .mat { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mat button { min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--panel); color: var(--ink); font-weight: 600; font-size: 16px; }
+  .mat button[aria-pressed="true"] { border: 1.5px solid var(--on-yellow); background: var(--yellow); color: var(--on-yellow); }
+  .swatch { width: 18px; height: 18px; flex: none; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25); }
+  .swatch.cu { background: radial-gradient(circle at 35% 30%, #F7B78E, #CF7641 55%, #8E4119); }
+  .swatch.al { background: radial-gradient(circle at 35% 30%, #FBFCFD, #C3CBD3 55%, #7D8995); }
+
+  .len-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) 52px; gap: 8px; }
+  .step-btn { height: 56px; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--panel); color: var(--ink); font: 500 28px/1 var(--sans); }
+  .step-btn:active { background: var(--wall); }
+  .len-box { position: relative; }
+  .len-box input { width: 100%; height: 56px; padding: 0 44px; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--panel); color: var(--ink); text-align: center; font: 600 30px/1 var(--cond); font-variant-numeric: tabular-nums; }
+  .len-box input:focus { outline: 2px solid var(--focus); outline-offset: -1px; }
+  .len-box .unit { position: absolute; top: 50%; inset-inline-end: 14px; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
+  .range { display: block; width: 100%; margin: 16px 0 0; accent-color: var(--slider); }
+  .scale { display: flex; justify-content: space-between; margin-top: 2px; color: var(--muted); font: 500 13px/1 var(--cond); font-variant-numeric: tabular-nums; }
+
+  .steprow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 15px; }
+  .steprow input { width: 64px; height: 44px; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--panel); color: var(--ink); text-align: center; font: 600 19px/1 var(--cond); }
+  .steprow input:focus { outline: 2px solid var(--focus); outline-offset: -1px; }
+
+  /* Length table, ruled like the printed sheet */
+  .lengths table { width: 100%; border-collapse: collapse; }
+  .lengths th { padding: 0 12px 8px; border-bottom: 1.5px solid var(--ink); color: var(--muted); font: 600 14px/1.2 var(--sans); text-align: start; }
+  .lengths td { padding: 11px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .lengths td.l { width: 40%; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .lengths td .spec { font-size: 17px; }
+  .nw { white-space: nowrap; }
+  .lengths tr.on td { background: var(--marker); color: var(--ink); }
+  .lengths tr.on td.l { font-weight: 600; }
+  .lengths tr.past td { color: var(--muted); }
+  .lengths tr.past.on td { color: var(--ink); font-weight: 600; }
+  .you { display: inline-block; margin-inline-start: 8px; padding: 2px 6px; border-radius: 3px; background: var(--ink); color: var(--panel); font: 700 13px/1.3 var(--cond); white-space: nowrap; }
+
+  /* Original sheet */
+  .source { margin-top: 24px; padding: 0; overflow: hidden; }
+  .source summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 20px; cursor: pointer; list-style: none; font: 600 17px/1.3 var(--sans); }
+  .source summary::-webkit-details-marker { display: none; }
+  .chev { width: 20px; height: 20px; flex: none; color: var(--muted); transition: transform 0.2s ease; }
+  .source[open] .chev { transform: rotate(180deg); }
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-top: 1px solid var(--rule); }
+  .src { width: 100%; min-width: 600px; border-collapse: collapse; }
+  .src th, .src td { padding: 10px 16px; border-bottom: 1px solid var(--rule); text-align: start; vertical-align: top; }
+  .src th { color: var(--muted); font: 600 14px/1.2 var(--sans); white-space: nowrap; }
+  .src td .spec { font-size: 16px; }
+  .src tbody tr { cursor: pointer; }
+  .src tbody tr:last-child td { border-bottom: 0; }
+  @media (hover: hover) { .src tbody tr:hover td { background: rgba(127, 127, 127, 0.08); } }
+  .src tr.sel td { background: var(--marker); }
+  .dash { color: var(--rule-strong); }
+
+  .foot { margin: 20px 0 0; max-width: 70ch; color: var(--muted); font-size: 14px; }
+
+  /* Pinned mini cable when the big one scrolls away */
+  .mini-wrap { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)); pointer-events: none; visibility: hidden; transform: translateY(calc(100% + 8px)); transition: transform 0.22s ease, visibility 0s linear 0.22s; }
+  .mini-wrap.show { visibility: visible; transform: none; transition: transform 0.22s ease, visibility 0s; }
+  .mini-cut:empty { display: none; }
+  .mini.is-warn { padding-inline-start: 20px; }
+  .mini.is-warn .mini-spec { font: 600 16px/1.25 var(--sans); }
+  .mini { pointer-events: auto; display: flex; align-items: center; gap: 12px; width: 100%; max-width: 560px; height: 56px; margin: 0 auto; padding-inline: 8px 18px; border: 0; border-radius: 999px; color: #F4F4EF; text-align: start; background: linear-gradient(180deg, #4A5055 0%, #262A2D 20%, #121416 52%, #08090A 78%, #23272A 100%); box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.5); }
+  .mini-cut { width: 40px; height: 40px; flex: none; }
+  .mini-cut svg { display: block; width: 100%; height: 100%; }
+  .mini-spec { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 600 20px/1 var(--cond); }
+  .mini-ctx { margin-inline-start: auto; color: #B9BFC3; font-size: 14px; white-space: nowrap; }
+  .mini.is-warn .mini-spec { color: #FFC20E; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .jacket.pull .spec-main, .jacket.pull .print { animation: none; }
+    .mini-wrap, .chev { transition: none; }
+  }
+
+  /* Install bar (phone app build) */
+  .install { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; padding-block: 8px; padding-inline: 14px 6px; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; }
+  .install-text { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 15px; line-height: 1.4; }
+  .install-btn { flex: none; min-height: 44px; padding: 0 16px; border: 0; border-radius: 3px; background: var(--ink); color: var(--panel); font-weight: 600; font-size: 15px; }
+  .install-x { flex: none; width: 44px; height: 44px; border: 0; border-radius: 3px; background: transparent; color: var(--muted); font-size: 26px; line-height: 1; }
+  @media (hover: hover) { .install-x:hover { color: var(--ink); } }
+  @media (display-mode: standalone) { .install { display: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="install" id="install" hidden>
+    <p class="install-text" id="installText"></p>
+    <button type="button" class="install-btn" id="installBtn" hidden></button>
+    <button type="button" class="install-x" id="installX" aria-label="Dismiss">×</button>
+  </div>
+  <header class="top">
+    <h1 data-i18n="title">Cable size by length</h1>
+    <div class="lang" id="lang" role="group" data-i18n-aria="langLabel" aria-label="Language">
+      <button type="button" data-lang="en" lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="he" lang="he" aria-pressed="false">עברית</button>
+      <button type="button" data-lang="ar" lang="ar" aria-pressed="false">عربي</button>
+    </div>
+    <p class="rule" id="ruleText"></p>
+  </header>
+
+  <section class="hero" id="result" aria-live="polite">
+    <div class="cable" id="cable">
+      <div class="cut" id="cut" aria-hidden="true"></div>
+      <div class="jacket" id="jacket">
+        <span class="spec-main" id="specMain"></span>
+        <span class="print" id="print" aria-hidden="true"></span>
+      </div>
+    </div>
+    <p class="spec-extra" id="specExtra" hidden></p>
+    <p class="explain" id="explain"></p>
+    <button type="button" class="switch" id="switchBtn" hidden></button>
+  </section>
+
+  <div class="layout">
+    <section class="sheet controls">
+      <div class="field">
+        <div class="flabel">
+          <span class="lbl" id="lblConn" data-i18n="connection">Connection size</span>
+          <span class="hint" data-i18n="hint">3-phase, amps</span>
+        </div>
+        <div class="chips" id="chips" role="group" aria-labelledby="lblConn"></div>
+      </div>
+
+      <div class="field">
+        <div class="flabel"><span class="lbl" id="lblMat" data-i18n="material">Conductor</span></div>
+        <div class="mat" id="mat" role="group" aria-labelledby="lblMat">
+          <button type="button" data-mat="cu" aria-pressed="true"><span class="swatch cu" aria-hidden="true"></span><span data-i18n="cu">Copper</span></button>
+          <button type="button" data-mat="al" aria-pressed="false"><span class="swatch al" aria-hidden="true"></span><span data-i18n="al">Aluminum</span></button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="flabel"><label class="lbl" for="len" data-i18n="length">Cable length</label></div>
+        <div class="len-row">
+          <button type="button" class="step-btn" id="minus" data-i18n-aria="dec" aria-label="5 m shorter">−</button>
+          <div class="len-box">
+            <input id="len" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" dir="ltr">
+            <span class="unit" data-i18n="m" aria-hidden="true">m</span>
+          </div>
+          <button type="button" class="step-btn" id="plus" data-i18n-aria="inc" aria-label="5 m longer">+</button>
+        </div>
+        <input class="range" id="lenRange" type="range" min="0" max="300" step="1" data-i18n-aria="length" aria-label="Cable length">
+        <div class="scale" aria-hidden="true"><span>0</span><span>100</span><span>200</span><span>300</span></div>
+      </div>
+
+      <div class="steprow">
+        <label for="stepIn" data-i18n="stepLabel">Move up one size every</label>
+        <input id="stepIn" type="text" inputmode="decimal" autocomplete="off" dir="ltr">
+        <span data-i18n="m">m</span>
+      </div>
+    </section>
+
+    <section class="sheet lengths" id="lengths">
+      <h2 id="lengthsTitle"></h2>
+      <table>
+        <thead id="lenHead"></thead>
+        <tbody id="lenBody"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <details class="sheet source">
+    <summary><span data-i18n="source">The original sheet</span><svg class="chev" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+    <div class="scroll">
+      <table class="src">
+        <thead id="srcHead"></thead>
+        <tbody id="srcBody"></tbody>
+      </table>
+    </div>
+  </details>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<div class="mini-wrap" id="miniWrap" aria-hidden="true">
+  <button type="button" class="mini" id="mini" tabindex="-1">
+    <span class="mini-cut" id="miniCut"></span>
+    <span class="mini-spec" id="miniSpec"></span>
+    <span class="mini-ctx" id="miniCtx"></span>
+  </button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // LOGIC-START
+  // Transcribed from the sheet: connection size -> copper / aluminum cable (null = empty cell).
+  var TABLE = [
+    { a: 10,   cu: "5×1.5 N2XY",                          al: null },
+    { a: 16,   cu: "5×2.5 N2XY",                          al: null },
+    { a: 20,   cu: "5×4 N2XY",                            al: null },
+    { a: 25,   cu: "5×6 N2XY",                            al: null },
+    { a: 32,   cu: "5×6 N2XY",                            al: null },
+    { a: 40,   cu: "5×10 N2XY",                           al: null },
+    { a: 50,   cu: "5×10 N2XY",                           al: null },
+    { a: 63,   cu: "5×16 N2XY",                           al: null },
+    { a: 80,   cu: "3×25+16 N2XY + 16 Cu",                al: null },
+    { a: 100,  cu: "3×35+16 N2XY + 16 Cu",                al: "3×50+25 NA2XY + 25 Cu" },
+    { a: 125,  cu: "3×50+25 N2XY + 25 Cu",                al: "3×70+35 NA2XY + 35 Cu" },
+    { a: 160,  cu: "3×70+35 N2XY + 35 Cu",                al: "3×95+50 NA2XY + 50 Cu" },
+    { a: 200,  cu: "3×95+50 N2XY + 50 Cu",                al: "3×150+70 NA2XY + 70 Cu" },
+    { a: 250,  cu: "3×120+70 N2XY + 70 Cu",               al: "3×150+70 NA2XY + 70 Cu" },
+    { a: 315,  cu: "3×150+70 N2XY + 70 Cu",               al: null },
+    { a: 400,  cu: "3×240+120 N2XY + 120 Cu",             al: "3×240+120 NA2XY + 150 Cu" },
+    { a: 500,  cu: null,                                  al: null },
+    { a: 630,  cu: "3×(3×150+70 N2XY) + 2×150 Cu",        al: "2×(3×240+120 NA2XY) + 2×120 Cu" },
+    { a: 800,  cu: null,                                  al: "3×(3×240+120 NA2XY) + 2×120 Cu" },
+    { a: 1000, cu: null,                                  al: "3×(3×240+120 NA2XY) + 2×120 Cu" },
+    { a: 1250, cu: null,                                  al: "4×(3×240+120 NA2XY) + 2×120 Cu" },
+    { a: 1600, cu: "3×[3×(1×300 N2XY)] + 2×(1×300 N2XY)", al: null },
+    { a: 2000, cu: "3×[4×(1×300 N2XY)] + 3×(1×300 N2XY)", al: null },
+    { a: 2500, cu: null,                                  al: null }
+  ];
+
+  // Size ladder per conductor: every distinct cable on the sheet, smallest first.
+  // A cable that appears twice (e.g. 5×6 for 25A and 32A) is one rung.
+  var LADDER = { cu: [], al: [] };
+  TABLE.forEach(function (row) {
+    ["cu", "al"].forEach(function (m) {
+      if (row[m] && LADDER[m].indexOf(row[m]) === -1) LADDER[m].push(row[m]);
+    });
+  });
+
+  // Up to one step length: the sheet cable. Each further step, or part of it: one rung up.
+  function stepsFor(len, step) {
+    if (!(len > step)) return 0;
+    return Math.ceil(len / step - 1e-9) - 1;
+  }
+
+  function pick(i, mat, len, step) {
+    var row = TABLE[i], base = row[mat];
+    if (!base) return { status: "none", row: row };
+    var ladder = LADDER[mat];
+    var baseIdx = ladder.indexOf(base);
+    var top = ladder.length - 1;
+    var steps = stepsFor(len, step);
+    var bands = top - baseIdx + 1;
+    var over = baseIdx + steps > top;
+    return {
+      status: over ? "beyond" : "ok",
+      row: row, base: base, baseIdx: baseIdx, top: top, steps: steps, ladder: ladder,
+      bands: bands, maxLen: bands * step,
+      cable: over ? null : ladder[baseIdx + steps]
+    };
+  }
+  // LOGIC-END
+
+  var I18N = {
+    en: {
+      dir: "ltr",
+      title: "Cable size by length",
+      rule: "The sheet’s cable covers the first {step} m. Every extra {step} m, or part of it, moves up one size.",
+      langLabel: "Language",
+      connection: "Connection size",
+      hint: "3-phase, amps",
+      material: "Conductor",
+      cu: "Copper", al: "Aluminum", cuL: "copper", alL: "aluminum",
+      length: "Cable length",
+      m: "m",
+      dec: "5 m shorter", inc: "5 m longer",
+      stepLabel: "Move up one size every",
+      beyondBig: "Beyond the sheet",
+      noneBig: "Not on the sheet",
+      badge: function (n) { return n === 1 ? "+1 size" : "+" + n + " sizes"; },
+      ok0: "Straight from the sheet for {conn}, good up to {step} m.",
+      okN: "The sheet cable for {conn} is {base}, good up to {step} m.",
+      beyond: "Past {a} m the sheet has no bigger {matL} cable for this connection. The largest is {top}. Size this run with a voltage-drop calculation.",
+      noneMat: "The sheet lists no {matL} cable for {conn}.",
+      noneAll: "The sheet lists no cable for {conn}. Pick another connection size.",
+      switchCu: "Switch to copper", switchAl: "Switch to aluminum",
+      ladderTitle: "Length table for {conn}, {matL}",
+      colLen: "Length", colCable: "Cable",
+      upTo: "up to {b} m", range: "{ab} m", over: "over {a} m",
+      beyondRow: "Beyond the sheet",
+      miniCtx: "{conn}, {len}",
+      source: "The original sheet",
+      colConn: "Connection", colCu: "Copper cables", colAl: "Aluminum cables",
+      foot: "A cable listed twice on the sheet counts as one size, so {a} moves straight to {b}. This is the sheet’s rule of thumb; check voltage drop and installation method on the final design."
+    },
+    he: {
+      dir: "rtl",
+      title: "גודל כבל לפי אורך",
+      rule: "הכבל שבטבלה מתאים ל-{step} המטרים הראשונים. כל {step} מ׳ נוספים, או חלק מהם, עולים לכבל הבא.",
+      langLabel: "שפה",
+      connection: "גודל חיבור",
+      hint: "תלת-פאזי, אמפר",
+      material: "מוליך",
+      cu: "נחושת", al: "אלומיניום", cuL: "נחושת", alL: "אלומיניום",
+      length: "אורך הכבל",
+      m: "מ׳",
+      dec: "קצר ב-5 מ׳", inc: "ארוך ב-5 מ׳",
+      stepLabel: "עולים כבל אחד כל",
+      beyondBig: "מעבר לטבלה",
+      noneBig: "לא מופיע בטבלה",
+      badge: function (n) { return n === 1 ? "+1 מידה" : "+" + n + " מידות"; },
+      ok0: "ישר מהטבלה עבור {conn}, מתאים עד {step} מ׳.",
+      okN: "הכבל שבטבלה עבור {conn} הוא {base}, מתאים עד {step} מ׳.",
+      beyond: "מעל {a} מ׳ אין בטבלה כבל {matL} גדול יותר לחיבור הזה. הגדול ביותר הוא {top}. חשבו את הקו לפי מפל מתח.",
+      noneMat: "בטבלה אין כבל {matL} עבור {conn}.",
+      noneAll: "בטבלה אין כבל עבור {conn}. בחרו גודל חיבור אחר.",
+      switchCu: "עבור לנחושת", switchAl: "עבור לאלומיניום",
+      ladderTitle: "טבלת אורכים עבור {conn}, {matL}",
+      colLen: "אורך", colCable: "כבל",
+      upTo: "עד {b} מ׳", range: "{ab} מ׳", over: "מעל {a} מ׳",
+      beyondRow: "מעבר לטבלה",
+      miniCtx: "{conn}, {len}",
+      source: "הטבלה המקורית",
+      colConn: "גודל חיבור", colCu: "כבלי נחושת", colAl: "כבלי אלומיניום",
+      foot: "כבל שמופיע פעמיים בטבלה נחשב מידה אחת, ולכן {a} עולה ישר ל-{b}. זהו כלל האצבע של הטבלה; בתכנון הסופי יש לבדוק מפל מתח ושיטת התקנה."
+    },
+    ar: {
+      dir: "rtl",
+      title: "مقطع الكابل حسب الطول",
+      rule: "كابل الجدول يكفي لأول {step} م. كل {step} م إضافية، أو جزء منها، ننتقل إلى المقاس التالي.",
+      langLabel: "اللغة",
+      connection: "حجم الربط",
+      hint: "ثلاثي الطور، أمبير",
+      material: "الموصل",
+      cu: "نحاس", al: "ألمنيوم", cuL: "نحاس", alL: "ألمنيوم",
+      length: "طول الكابل",
+      m: "م",
+      dec: "أقصر بـ 5 م", inc: "أطول بـ 5 م",
+      stepLabel: "مقاس أعلى كل",
+      beyondBig: "خارج الجدول",
+      noneBig: "غير موجود في الجدول",
+      badge: function (n) {
+        if (n === 1) return "+مقاس واحد";
+        if (n === 2) return "+مقاسان";
+        return n <= 10 ? "+" + n + " مقاسات" : "+" + n + " مقاسًا";
+      },
+      ok0: "مباشرة من الجدول لـ {conn}، ويكفي حتى {step} م.",
+      okN: "كابل الجدول لـ {conn} هو {base}، ويكفي حتى {step} م.",
+      beyond: "بعد {a} م لا يوجد في الجدول كابل {matL} أكبر لهذا الربط. أكبر مقاس هو {top}. احسب هذا الخط حسب هبوط الجهد.",
+      noneMat: "لا يوجد في الجدول كابل {matL} لـ {conn}.",
+      noneAll: "لا يوجد في الجدول كابل لـ {conn}. اختر حجم ربط آخر.",
+      switchCu: "انتقل إلى النحاس", switchAl: "انتقل إلى الألمنيوم",
+      ladderTitle: "جدول الأطوال لـ {conn}، {matL}",
+      colLen: "الطول", colCable: "الكابل",
+      upTo: "حتى {b} م", range: "{ab} م", over: "أكثر من {a} م",
+      beyondRow: "خارج الجدول",
+      miniCtx: "{conn}، {len}",
+      source: "الجدول الأصلي",
+      colConn: "حجم الربط", colCu: "كوابل نحاس", colAl: "كوابل ألمنيوم",
+      foot: "الكابل المذكور مرتين في الجدول يُحسب مقاسًا واحدًا، لذلك ينتقل {a} مباشرة إلى {b}. هذه قاعدة الجدول العملية؛ في التصميم النهائي يجب فحص هبوط الجهد وطريقة التمديد."
+    }
+  };
+
+  // ---------- state ----------
+  var KEY = "cable-by-length:v1";
+  var state = { lang: "en", conn: 1, mat: "cu", len: 30, step: 25 };
+  function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
+
+  function detectLang() {
+    var list = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "en"];
+    for (var i = 0; i < list.length; i++) {
+      var c = String(list[i]).toLowerCase().slice(0, 2);
+      if (c === "he" || c === "iw") return "he";
+      if (c === "ar") return "ar";
+      if (c === "en") return "en";
+    }
+    return "en";
+  }
+
+  (function load() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { s = null; }
+    if (!s || typeof s !== "object") s = {};
+    state.lang = typeof s.lang === "string" && has(I18N, s.lang) ? s.lang : detectLang();
+    if (typeof s.conn === "number" && s.conn % 1 === 0 && s.conn >= 0 && s.conn < TABLE.length) state.conn = s.conn;
+    if (s.mat === "cu" || s.mat === "al") state.mat = s.mat;
+    if (typeof s.len === "number" && isFinite(s.len) && s.len >= 0) state.len = s.len;
+    if (typeof s.step === "number" && isFinite(s.step) && s.step > 0) state.step = s.step;
+  })();
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ } }
+
+  // ---------- helpers ----------
+  function $(id) { return document.getElementById(id); }
+  function fmt(x) { return String(Math.round(x * 10) / 10); }
+  function spec(s) { return '<bdi dir="ltr" class="spec">' + s + "</bdi>"; }
+  function num(s) { return '<bdi dir="ltr">' + s + "</bdi>"; }
+  function connName(row) { return "3×" + row.a + "A"; }
+  function T() { return I18N[state.lang]; }
+  function tr(key, vars) {
+    return T()[key].replace(/\{(\w+)\}/g, function (m, k) { return vars && has(vars, k) ? vars[k] : m; });
+  }
+  function parseNum(s) { var v = parseFloat(String(s).replace(",", ".")); return isFinite(v) ? v : NaN; }
+  function each(sel, fn) { Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Cut end of the cable: real core colours (brown, black, grey, blue, green-yellow) around copper or aluminium.
+  function cutSVG(mainSpec, mat, id) {
+    var type = /^5×/.test(mainSpec) ? 5 : mainSpec.indexOf("[") !== -1 ? 1 : 4;
+    var metal = mat === "al" ? ["#FBFCFD", "#C3CBD3", "#7D8995"] : ["#F7B78E", "#CF7641", "#8E4119"];
+    var g = id + "m", sh = id + "s", pe = id + "p";
+    var s = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>' +
+      '<radialGradient id="' + g + '" cx="38%" cy="34%" r="70%"><stop offset="0" stop-color="' + metal[0] + '"/><stop offset=".55" stop-color="' + metal[1] + '"/><stop offset="1" stop-color="' + metal[2] + '"/></radialGradient>' +
+      '<radialGradient id="' + sh + '" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#3A3F43"/><stop offset="1" stop-color="#0B0C0D"/></radialGradient>' +
+      '<linearGradient id="' + pe + '" x1="0" y1="0" x2="1" y2="1">' +
+        '<stop offset="0" stop-color="#3C9A3F"/><stop offset=".25" stop-color="#3C9A3F"/><stop offset=".25" stop-color="#F2C80F"/><stop offset=".5" stop-color="#F2C80F"/>' +
+        '<stop offset=".5" stop-color="#3C9A3F"/><stop offset=".75" stop-color="#3C9A3F"/><stop offset=".75" stop-color="#F2C80F"/><stop offset="1" stop-color="#F2C80F"/>' +
+      "</linearGradient></defs>" +
+      '<circle cx="50" cy="50" r="49" fill="url(#' + sh + ')" stroke="rgba(255,255,255,.14)" stroke-width="1"/>';
+    function core(x, y, ri, rc, fill) {
+      return '<circle cx="' + x + '" cy="' + y + '" r="' + ri + '" fill="' + fill + '" stroke="rgba(255,255,255,.24)" stroke-width=".8"/>' +
+             '<circle cx="' + x + '" cy="' + y + '" r="' + rc + '" fill="url(#' + g + ')"/>';
+    }
+    if (type === 1) {
+      s += '<circle cx="50" cy="50" r="40" fill="#CDD0CB"/><circle cx="50" cy="50" r="29" fill="url(#' + g + ')"/>';
+    } else {
+      s += '<circle cx="50" cy="50" r="41.5" fill="#2A2E31"/>';
+      if (type === 5) {
+        s += core(50, 26, 13.5, 8, "#7B4A2A") + core(72.83, 42.58, 13.5, 8, "#17181A") +
+             core(64.11, 69.42, 13.5, 8, "#8C9399") + core(35.89, 69.42, 13.5, 8, "#2F67B5") +
+             core(27.17, 42.58, 13.5, 8, "url(#" + pe + ")");
+      } else {
+        s += core(34.5, 34.5, 15, 9.5, "#7B4A2A") + core(65.5, 34.5, 15, 9.5, "#17181A") +
+             core(34.5, 65.5, 15, 9.5, "#8C9399") + core(65.5, 65.5, 11, 6.5, "#2F67B5");
+      }
+    }
+    return s + "</svg>";
+  }
+
+  // ---------- static parts ----------
+  var chipsEl = $("chips");
+  (function buildChips() {
+    var html = "";
+    for (var f = 0; f < 3; f++) {
+      html += '<div class="fam">';
+      for (var i = f * 8; i < f * 8 + 8; i++) {
+        var row = TABLE[i];
+        html += '<button type="button" class="chip" data-i="' + i + '" aria-pressed="false" aria-label="' + connName(row) + '">' + row.a + "</button>";
+      }
+      html += "</div>";
+    }
+    chipsEl.innerHTML = html;
+  })();
+  var chipEls = Array.prototype.slice.call(chipsEl.querySelectorAll(".chip"));
+
+  $("srcBody").innerHTML = TABLE.map(function (row, i) {
+    var dash = '<span class="dash">–</span>';
+    return '<tr data-i="' + i + '"><td>' + spec(connName(row)) + "</td><td>" + (row.cu ? spec(row.cu) : dash) + "</td><td>" + (row.al ? spec(row.al) : dash) + "</td></tr>";
+  }).join("");
+
+  function applyLang() {
+    var t = T(), root = document.documentElement;
+    root.lang = state.lang;
+    root.dir = t.dir;
+    document.title = t.title;
+    each("[data-i18n]", function (el) { el.textContent = t[el.getAttribute("data-i18n")]; });
+    each("[data-i18n-aria]", function (el) { el.setAttribute("aria-label", t[el.getAttribute("data-i18n-aria")]); });
+    each("#lang button", function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-lang") === state.lang)); });
+    $("foot").innerHTML = tr("foot", { a: spec("5×6"), b: spec("5×10") });
+    $("srcHead").innerHTML = "<tr><th>" + t.colConn + "</th><th>" + t.colCu + "</th><th>" + t.colAl + "</th></tr>";
+    $("lenHead").innerHTML = "<tr><th>" + t.colLen + "</th><th>" + t.colCable + "</th></tr>";
+  }
+
+  // ---------- dynamic parts ----------
+  var lastKey = "";
+
+  function renderHero(r) {
+    var t = T(), row = TABLE[state.conn];
+    var cable = $("cable"), cut = $("cut"), main = $("specMain"), print = $("print");
+    var extra = $("specExtra"), explain = $("explain"), sw = $("switchBtn");
+    var mini = $("mini"), miniCut = $("miniCut"), miniSpec = $("miniSpec");
+    cable.classList.remove("is-beyond", "is-none");
+    mini.classList.remove("is-warn");
+    sw.hidden = true;
+    extra.hidden = true;
+    print.textContent = "";
+    miniCut.innerHTML = "";
+
+    if (r.status === "ok") {
+      var parts = r.cable.split(" + ");
+      var head = parts.shift();
+      cut.hidden = false;
+      cut.innerHTML = cutSVG(head, state.mat, "c");
+      miniCut.innerHTML = cutSVG(head, state.mat, "k");
+      main.innerHTML = spec(head);
+      miniSpec.innerHTML = spec(head);
+      print.innerHTML = new Array(13).join("<span>" + head + "</span>");
+      if (parts.length) { extra.hidden = false; extra.innerHTML = spec("+ " + parts.join(" + ")); }
+      explain.innerHTML = r.steps > 0
+        ? '<span class="badge">' + t.badge(r.steps) + "</span>" + tr("okN", { conn: spec(connName(row)), base: spec(r.base), step: num(fmt(state.step)) })
+        : tr("ok0", { conn: spec(connName(row)), step: num(fmt(state.step)) });
+    } else {
+      cut.hidden = true;
+      mini.classList.add("is-warn");
+      if (r.status === "beyond") {
+        cable.classList.add("is-beyond");
+        main.textContent = t.beyondBig;
+        explain.innerHTML = tr("beyond", { a: num(fmt(r.maxLen)), matL: t[state.mat + "L"], top: spec(r.ladder[r.top]) });
+      } else {
+        cable.classList.add("is-none");
+        main.textContent = t.noneBig;
+        var other = state.mat === "cu" ? "al" : "cu";
+        if (row[other]) {
+          explain.innerHTML = tr("noneMat", { matL: t[state.mat + "L"], conn: spec(connName(row)) });
+          sw.hidden = false;
+          sw.textContent = other === "cu" ? t.switchCu : t.switchAl;
+        } else {
+          explain.innerHTML = tr("noneAll", { conn: spec(connName(row)) });
+        }
+      }
+      miniSpec.textContent = main.textContent;
+    }
+    $("miniCtx").innerHTML = tr("miniCtx", { conn: spec(connName(row)), len: num(fmt(state.len)) + " " + t.m });
+
+    var key = r.status + "|" + (r.cable || state.conn) + "|" + state.mat;
+    if (lastKey && key !== lastKey && !reduceMotion) {
+      var j = $("jacket");
+      j.classList.remove("pull");
+      void j.offsetWidth;
+      j.classList.add("pull");
+    }
+    lastKey = key;
+    fitSpec();
+  }
+
+  // Shrink the printed spec so it always fits on the jacket.
+  function fitSpec() {
+    var main = $("specMain"), jacket = $("jacket");
+    main.style.fontSize = "";
+    var cs = getComputedStyle(jacket);
+    var avail = jacket.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    if ($("print").textContent) avail -= parseFloat(cs.columnGap) || 0;
+    var w = main.scrollWidth;
+    if (avail > 0 && w > avail) {
+      var size = parseFloat(getComputedStyle(main).fontSize);
+      main.style.fontSize = Math.max(14, Math.floor(size * avail / w * 0.98)) + "px";
+    }
+    var pr = $("print"), first = pr.firstElementChild;
+    pr.style.visibility = first && pr.clientWidth >= first.offsetWidth + 24 ? "" : "hidden";
+  }
+
+  function renderLengths(r) {
+    var t = T(), box = $("lengths");
+    if (r.status === "none") { box.hidden = true; return; }
+    box.hidden = false;
+    $("lengthsTitle").innerHTML = tr("ladderTitle", { conn: spec(connName(TABLE[state.conn])), matL: t[state.mat + "L"] });
+    var step = state.step, len = state.len, active = Math.min(r.steps, r.bands);
+    var you = len > 0 ? '<span class="you">' + num(fmt(len)) + " " + t.m + "</span>" : "";
+    var html = "";
+    for (var k = 0; k < r.bands; k++) {
+      var a = k * step, b = a + step, on = k === active;
+      var range = k === 0 ? tr("upTo", { b: num(fmt(b)) }) : tr("range", { ab: num(fmt(a) + "–" + fmt(b)) });
+      html += "<tr" + (on ? ' class="on" aria-current="true"' : "") + '><td class="l"><span class="nw">' + range + "</span>" + (on ? you : "") +
+              "</td><td>" + spec(r.ladder[r.baseIdx + k]) + "</td></tr>";
+    }
+    var bon = active === r.bands;
+    html += '<tr class="past' + (bon ? " on" : "") + '"' + (bon ? ' aria-current="true"' : "") + '><td class="l"><span class="nw">' +
+            tr("over", { a: num(fmt(r.maxLen)) }) + "</span>" + (bon ? you : "") + "</td><td>" + t.beyondRow + "</td></tr>";
+    $("lenBody").innerHTML = html;
+  }
+
+  function renderDynamic() {
+    $("ruleText").innerHTML = tr("rule", { step: num(fmt(state.step)) });
+    var r = pick(state.conn, state.mat, state.len, state.step);
+    renderHero(r);
+    renderLengths(r);
+  }
+
+  function renderAll() {
+    document.body.setAttribute("data-mat", state.mat);
+    chipEls.forEach(function (el, i) {
+      el.setAttribute("aria-pressed", String(i === state.conn));
+      el.classList.toggle("empty", !TABLE[i][state.mat]);
+    });
+    each("#mat button", function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-mat") === state.mat)); });
+    var rows = $("srcBody").children;
+    for (var i = 0; i < rows.length; i++) rows[i].classList.toggle("sel", i === state.conn);
+    renderDynamic();
+  }
+
+  // ---------- events ----------
+  var lenIn = $("len"), lenRange = $("lenRange"), stepIn = $("stepIn");
+  function syncRange() { lenRange.value = String(Math.min(state.len, Number(lenRange.max))); }
+  function setLen(v) {
+    state.len = Math.max(0, Math.round(v * 10) / 10);
+    lenIn.value = fmt(state.len);
+    syncRange(); renderDynamic(); save();
+  }
+
+  chipsEl.addEventListener("click", function (e) {
+    var b = e.target.closest(".chip");
+    if (!b) return;
+    state.conn = Number(b.getAttribute("data-i"));
+    renderAll(); save();
+  });
+  $("mat").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-mat]");
+    if (!b) return;
+    state.mat = b.getAttribute("data-mat");
+    renderAll(); save();
+  });
+  $("switchBtn").addEventListener("click", function () {
+    state.mat = state.mat === "cu" ? "al" : "cu";
+    renderAll(); save();
+  });
+
+  lenIn.addEventListener("input", function () {
+    var v = parseNum(lenIn.value);
+    state.len = v >= 0 ? v : 0;
+    syncRange(); renderDynamic(); save();
+  });
+  lenIn.addEventListener("focus", function () { lenIn.select(); });
+  lenIn.addEventListener("blur", function () { lenIn.value = fmt(state.len); });
+  lenRange.addEventListener("input", function () {
+    state.len = Number(lenRange.value);
+    lenIn.value = fmt(state.len);
+    renderDynamic(); save();
+  });
+  $("minus").addEventListener("click", function () { setLen(Math.ceil(state.len / 5) * 5 - 5); });
+  $("plus").addEventListener("click", function () { setLen(Math.floor(state.len / 5) * 5 + 5); });
+
+  stepIn.addEventListener("input", function () {
+    var v = parseNum(stepIn.value);
+    if (v > 0) { state.step = v; renderDynamic(); save(); }
+  });
+  stepIn.addEventListener("blur", function () { stepIn.value = fmt(state.step); });
+
+  $("lang").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-lang]");
+    if (!b) return;
+    state.lang = b.getAttribute("data-lang");
+    applyLang(); renderAll(); save();
+  });
+
+  $("srcBody").addEventListener("click", function (e) {
+    var row = e.target.closest("tr[data-i]");
+    if (!row) return;
+    state.conn = Number(row.getAttribute("data-i"));
+    renderAll(); save();
+    $("result").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  });
+
+  $("mini").addEventListener("click", function () {
+    $("result").scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  });
+
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(function (entries) {
+      var en = entries[0];
+      $("miniWrap").classList.toggle("show", !en.isIntersecting && en.boundingClientRect.top < 0);
+    }, { threshold: 0 }).observe($("cable"));
+  }
+
+  window.addEventListener("resize", fitSpec);
+
+  // ---------- start ----------
+  applyLang();
+  lenIn.value = fmt(state.len);
+  stepIn.value = fmt(state.step);
+  syncRange();
+  renderAll();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitSpec);
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  var S = {
+    en: { lead: "Install it on this phone to use it offline.", btn: "Install app", x: "Dismiss",
+          ios: "To install: open this page in Safari, tap Share, then Add to Home Screen.",
+          android: "To install: open this page in Chrome, tap ⋮, then Install app or Add to Home screen." },
+    he: { lead: "אפשר להתקין בטלפון ולהשתמש גם בלי אינטרנט.", btn: "התקנה", x: "סגירה",
+          ios: "להתקנה: פתחו את הדף ב-Safari, הקישו על ״שיתוף״ ואז על ״הוספה למסך הבית״.",
+          android: "להתקנה: פתחו את הדף ב-Chrome, הקישו על ⋮ ואז על ״התקנת אפליקציה״ או ״הוספה למסך הבית״." },
+    ar: { lead: "ثبّته على هذا الهاتف لاستعماله حتى بدون إنترنت.", btn: "تثبيت", x: "إغلاق",
+          ios: "للتثبيت: افتح الصفحة في Safari، اضغط «مشاركة» ثم «إضافة إلى الشاشة الرئيسية».",
+          android: "للتثبيت: افتح الصفحة في Chrome، اضغط ⋮ ثم «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»." }
+  };
+  var KEY = "cable-by-length:install-hidden";
+  var box = document.getElementById("install"), text = document.getElementById("installText");
+  var btn = document.getElementById("installBtn"), x = document.getElementById("installX");
+  var ua = navigator.userAgent || "";
+  var isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var isAndroid = /android/i.test(ua);
+  var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  var dismissed = false, prompt = null, androidHint = false;
+  try { dismissed = localStorage.getItem(KEY) === "1"; } catch (e) { /* storage unavailable */ }
+
+  function render() {
+    var s = S[document.documentElement.lang] || S.en;
+    x.setAttribute("aria-label", s.x);
+    btn.hidden = true;
+    if (standalone || dismissed) { box.hidden = true; return; }
+    if (prompt) { text.textContent = s.lead; btn.textContent = s.btn; btn.hidden = false; box.hidden = false; }
+    else if (isIOS) { text.textContent = s.ios; box.hidden = false; }
+    else if (isAndroid && androidHint) { text.textContent = s.android; box.hidden = false; }
+    else { box.hidden = true; }
+  }
+
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); prompt = e; render(); });
+  window.addEventListener("appinstalled", function () { prompt = null; standalone = true; render(); });
+  btn.addEventListener("click", function () {
+    if (!prompt) return;
+    var p = prompt;
+    p.prompt();
+    p.userChoice.then(function () { prompt = null; render(); }, function () { prompt = null; render(); });
+  });
+  x.addEventListener("click", function () {
+    dismissed = true;
+    try { localStorage.setItem(KEY, "1"); } catch (e) { /* storage unavailable */ }
+    render();
+  });
+  // Give Chrome a moment to offer its own install prompt before showing the manual hint.
+  if (isAndroid) setTimeout(function () { androidHint = true; render(); }, 2500);
+  new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+  render();
+
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js", { scope: "./" }).catch(function () { /* offline support unavailable */ });
+    });
+  }
+})();
+</script>
+</body>
+</html>
