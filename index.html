@@ -149,10 +149,10 @@
   .lbl { font: 600 16px/1.3 var(--sans); }
   .hint { font-size: 14px; color: var(--muted); }
 
-  .chips { display: grid; gap: 14px; }
+  .chips { display: grid; gap: 14px; container-type: inline-size; }
   .fam { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-  @media (min-width: 560px) { .fam { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
-  .chip { height: 46px; padding: 0; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--panel); color: var(--ink); font: 600 17px/1 var(--cond); font-variant-numeric: tabular-nums; }
+  @container (min-width: 560px) { .fam { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+  .chip { height: 46px; padding: 0; border: 1px solid var(--rule-strong); border-radius: 3px; background: var(--panel); color: var(--ink); font: 600 17px/1 var(--cond); white-space: nowrap; }
   .chip.empty { border-style: dashed; background: transparent; color: var(--muted); }
   .chip[aria-pressed="true"] { border: 1.5px solid var(--on-yellow); background: var(--yellow); color: var(--on-yellow); }
   @media (hover: hover) { .chip:hover { border-color: var(--ink); } }
@@ -586,7 +586,7 @@
       html += '<div class="fam">';
       for (var i = f * 8; i < f * 8 + 8; i++) {
         var row = TABLE[i];
-        html += '<button type="button" class="chip" data-i="' + i + '" aria-pressed="false" aria-label="' + connName(row) + '">' + row.a + "</button>";
+        html += '<button type="button" class="chip" data-i="' + i + '" aria-pressed="false" aria-label="' + connName(row) + '">' + row.a + "A</button>";
       }
       html += "</div>";
     }

@@ -1,6 +1,6 @@
 // Cable size by length: offline support.
 // After changing icons or adding files, raise VERSION so phones refresh everything.
-const VERSION = "1";
+const VERSION = "2";
 const SHELL = "cable-shell-v" + VERSION;
 const FONTS = "cable-fonts-v1";
 const ASSETS = [
@@ -44,7 +44,7 @@ async function keepFonts() {
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL);
-    await cache.addAll(ASSETS);
+    await cache.addAll(ASSETS.map((u) => new Request(u, { cache: "reload" })));
     await keepFonts().catch(() => {});
     await self.skipWaiting();
   })());
@@ -82,18 +82,33 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // The app itself: open instantly from the saved copy, refresh it in the background.
-  if (url.origin === self.location.origin) {
-    const key = req.mode === "navigate" ? "./index.html" : req;
+  // The app page: newest version when online, saved copy when offline or the network is too slow.
+  if (url.origin === self.location.origin && req.mode === "navigate") {
     event.respondWith((async () => {
       const cache = await caches.open(SHELL);
-      const hit = await cache.match(key, { ignoreSearch: true });
-      const fresh = fetch(req).then((res) => {
-        if (res && res.ok) cache.put(key, res.clone());
+      const network = fetch(req.url, { cache: "no-cache" }).then(async (res) => {
+        if (res && res.ok) await cache.put("./index.html", res.clone());
         return res;
-      }).catch(() => null);
-      event.waitUntil(fresh.then(() => undefined));
-      return hit || (await fresh) || (await cache.match("./index.html")) || Response.error();
+      });
+      event.waitUntil(network.then(() => undefined, () => undefined));
+      try {
+        const res = await Promise.race([network, new Promise((_, reject) => setTimeout(reject, 3000))]);
+        if (res && res.ok) return res;
+      } catch (e) { /* offline or slow: use the saved copy */ }
+      return (await cache.match("./index.html")) || network.catch(() => Response.error());
+    })());
+    return;
+  }
+
+  // Icons and manifest: saved copy first.
+  if (url.origin === self.location.origin) {
+    event.respondWith((async () => {
+      const cache = await caches.open(SHELL);
+      const hit = await cache.match(req, { ignoreSearch: true });
+      if (hit) return hit;
+      const res = await fetch(req);
+      if (res && res.ok) await cache.put(req, res.clone());
+      return res;
     })());
   }
 });
